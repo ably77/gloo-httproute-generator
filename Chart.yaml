@@ -1,0 +1,13 @@
+apiVersion: v2
+name: gloo-httproute-generator
+description: A Helm chart for managing HTTPRoute resources with Gloo Gateway
+type: application
+version: 0.1.0
+appVersion: "1.0"
+keywords:
+  - kubernetes
+  - gateway-api
+  - HTTPRoute
+maintainers:
+  - name: Alex Ly
+    email: Alexbrucely@gmail.com

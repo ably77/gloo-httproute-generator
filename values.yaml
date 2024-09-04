@@ -1,0 +1,15 @@
+metadata:
+  name: "" # Placeholder, will be replaced by generated name if not provided
+  namespace: gloo-system
+  labels:
+    example: sample-app-route
+    gateway: https
+spec:
+  hostnames: [] # Placeholder, will be replaced by generated hostname if not provided
+  parentRefs:
+    - name: https
+      namespace: gloo-system
+  rules:
+    - backendRefName: sample-service-team-a
+      pathPrefix: /
+      routeOptionName: sample-service-team-a-route-policies

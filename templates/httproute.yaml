@@ -1,0 +1,45 @@
+{{- $baseName := randAlphaNum 4 | lower }}
+{{- $generatedName := printf "ezai-%s" $baseName }}
+{{- $generatedHostname := printf "%s.kapoozi.com" $baseName }}
+{{- $name := .Values.metadata.name | default $generatedName }}
+{{- $namespace := .Release.Namespace }}
+{{- $hostname := printf "%s.kapoozi.com" $name }}
+{{- $hostnames := .Values.spec.hostnames | default (list $hostname) }}
+{{- $prefixPath := index .Values.metadata.labels "prefixPath" | default $name }}
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: {{ $name }}
+  namespace: {{ .Values.metadata.namespace | default $namespace }}
+  labels:
+{{- range $key, $value := .Values.metadata.labels }}
+    {{ $key }}: "{{ $value }}"
+{{- end }}
+spec:
+  hostnames:
+{{- range $hostnames }}
+    - {{ . }}
+{{- end }}
+  parentRefs:
+{{- range .Values.spec.parentRefs }}
+    - name: {{ .name | default "https" }}
+      namespace: {{ .namespace | default "gloo-system" }}
+{{- end }}
+  rules:
+{{- range .Values.spec.rules }}
+    {{- $namePath := printf "/%s/%s" $prefixPath .backendRefName }}
+    - backendRefs:
+        - group: gloo.solo.io
+          kind: Upstream
+          name: {{ .backendRefName }}
+      matches:
+        - path:
+            type: PathPrefix
+            value: {{ if .useRandomPathPrefix }}{{ $namePath }}{{ else }}{{ .pathPrefix | default (printf "/%s" $name) }}{{ end }}
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.solo.io
+            kind: RouteOption
+            name: {{ .routeOptionName }}
+{{- end }}
