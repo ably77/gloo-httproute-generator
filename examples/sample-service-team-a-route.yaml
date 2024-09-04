@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample-service-team-a-route
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    namespace: gloo-system
+    server: "https://kubernetes.default.svc"
+  source:
+    repoURL: 'https://github.com/ably77/gloo-httproute-generator'
+    targetRevision: HEAD
+    path: /
+    helm:
+      values: |
+        metadata:
+          name: "" # Placeholder, will be replaced by generated name if not provided
+          namespace: gloo-system
+          labels:
+            example: sample-app-route
+            gateway: https
+        spec:
+          hostnames: [] # Placeholder, will be replaced by generated hostname if not provided
+          parentRefs:
+            - name: https
+              namespace: gloo-system
+          rules:
+            - backendRefName: sample-service-team-a
+              pathPrefix: /
+              routeOptionName: sample-service-team-a-route-policies
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
