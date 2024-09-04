@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: 'https://github.com/ably77/gloo-httproute-generator'
     targetRevision: HEAD
-    path: /
+    path: "."
     helm:
       values: |
         metadata:
