@@ -59,7 +59,7 @@ spec:
 {{- if $hostRewrite }}
     hostRewrite: {{ $hostRewrite }}  # Configurable hostRewrite if provided
 {{- end }}
-{{- if $extauthConfigRefName }}
+{{- if and $extauthConfigRefName $extauthConfigRefNamespace }}
     extauth:
       configRef:
         name: {{ $extauthConfigRefName }}
