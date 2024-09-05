@@ -36,7 +36,9 @@ curl -X POST \
       "backend_ref_names": "yahoo-finance",
       "path_prefixes": "/",
       "jwt_disable": "true",
-      "host_rewrite": "query1.finance.yahoo.com"
+      "host_rewrite": "query1.finance.yahoo.com",
+      "extauth_name": "foo-extauth",
+      "extauth_namespace": "gloo-system"
     }
   }'
 ```
