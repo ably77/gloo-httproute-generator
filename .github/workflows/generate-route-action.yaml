@@ -112,10 +112,10 @@ jobs:
 
           # Handle extauth config
           if [ -n "$EXTAUTH_NAME" ]; then
-            EXTAUTH_CONFIG="extauth:
-                configRef:
-                  name: $EXTAUTH_NAME
-                  namespace: $EXTAUTH_NAMESPACE"
+            EXTAUTH_CONFIG="        extauth:
+                        configRef:
+                          name: $EXTAUTH_NAME
+                          namespace: $EXTAUTH_NAMESPACE"
           else
             EXTAUTH_CONFIG=""
           fi
