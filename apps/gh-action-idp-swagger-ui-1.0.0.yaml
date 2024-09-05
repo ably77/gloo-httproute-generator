@@ -176,7 +176,7 @@ data:
                           example: query1.finance.yahoo.com
                         extauth_name:
                           type: string
-                          example: foo-extauth
+                          example: apikey-auth
                         extauth_namespace:
                           type: string
                           example: gloo-system
