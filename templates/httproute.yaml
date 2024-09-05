@@ -56,7 +56,7 @@ spec:
 {{- if $hostRewrite }}
     hostRewrite: {{ $hostRewrite }}  # Configurable hostRewrite if provided
 {{- end }}
-{{- if .Values.spec.routeOption.extauth }}
+{{- if and .Values.spec.routeOption.extauth .Values.spec.routeOption.extauth.configRef }}
     extauth:
       configRef:
         name: {{ .Values.spec.routeOption.extauth.configRef.name }}
