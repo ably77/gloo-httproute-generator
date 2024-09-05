@@ -36,10 +36,7 @@ spec:
             jwt:
               disable: true
             hostRewrite: query1.finance.yahoo.com
-            extauth:
-              configRef:
-                name: foo-extauth
-                namespace: gloo-system
+            
   syncPolicy:
     automated:
       prune: true
