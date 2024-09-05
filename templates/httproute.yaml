@@ -7,8 +7,7 @@
 {{- $routeOptionName := printf "%s-route-policies" $name }}  # Default RouteOption name
 {{- $jwtDisabled := .Values.spec.routeOption.jwt.disable | default false }}  # Configurable JWT disable value
 {{- $hostRewrite := .Values.spec.routeOption.hostRewrite | default "" }}  # Configurable hostRewrite value
-{{- $extAuthConfigRefName := .Values.spec.routeOption.extauth.configRef.name | default "" }}  # ExtAuth configRef name
-{{- $extAuthConfigRefNamespace := .Values.spec.routeOption.extauth.configRef.namespace | default "" }}  # ExtAuth configRef namespace
+{{- $extAuthConfigRef := index .Values.spec.routeOption "extauth" | default dict }}  # Check if extauth exists
 ---
 # HTTPRoute resource
 apiVersion: gateway.networking.k8s.io/v1beta1
@@ -58,9 +57,9 @@ spec:
 {{- if $hostRewrite }}
     hostRewrite: {{ $hostRewrite }}  # Configurable hostRewrite if provided
 {{- end }}
-{{- if and $extAuthConfigRefName $extAuthConfigRefNamespace }}
+{{- if (hasKey $extAuthConfigRef "configRef") }}
     extauth:
       configRef:
-        name: {{ $extAuthConfigRefName }}
-        namespace: {{ $extAuthConfigRefNamespace }}  # ExtAuth configRef namespace
+        name: {{ $extAuthConfigRef.configRef.name }}
+        namespace: {{ $extAuthConfigRef.configRef.namespace | default "gloo-system" }}
 {{- end }}
