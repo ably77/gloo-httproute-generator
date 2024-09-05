@@ -158,7 +158,7 @@ jobs:
           git fetch origin main
           git checkout main
           git pull origin main
-          git merge --no-ff ${{ env.BRANCH_NAME }} || (
+          git merge --allow-unrelated-histories --no-ff ${{ env.BRANCH_NAME }} || (
             echo "Resolving conflicts by keeping changes from the new branch" &&
             git checkout --theirs routes/${{ github.event.inputs.service_name }}.yaml &&
             git add routes/${{ github.event.inputs.service_name }}.yaml &&
