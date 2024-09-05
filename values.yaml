@@ -1,15 +1,14 @@
 metadata:
-  name: "" # Placeholder, will be replaced by generated name if not provided
-  namespace: gloo-system
+  name: "sample-service-1-team-a"  # Optional, generated if not provided
+  namespace: gloo-system           # Defaulted in template if not provided
   labels:
-    example: sample-app-route
-    gateway: https
+    example: sample-app-route       # Only unique or necessary labels
 spec:
-  hostnames: [] # Placeholder, will be replaced by generated hostname if not provided
-  parentRefs:
-    - name: https
-      namespace: gloo-system
+  hostnames:                        # Optional, generated if not provided
+    - team-a.glootest.com
   rules:
-    - backendRefName: sample-service-team-a
+    - backendRefName: sample-service-1-team-a  # Derived from name if not provided
       pathPrefix: /
-      routeOptionName: sample-service-team-a-route-policies
+  routeOption:
+    jwt:
+      disable: true               # Configurable: set to true/false

@@ -1,45 +1,54 @@
 {{- $baseName := randAlphaNum 4 | lower }}
 {{- $generatedName := printf "gloo-%s" $baseName }}
-{{- $generatedHostname := printf "%s.glootest.com" $baseName }}
 {{- $name := .Values.metadata.name | default $generatedName }}
-{{- $namespace := .Release.Namespace }}
-{{- $hostname := printf "%s.glootest.com" $name }}
-{{- $hostnames := .Values.spec.hostnames | default (list $hostname) }}
+{{- $namespace := .Values.metadata.namespace | default "gloo-system" }}
+{{- $hostnames := .Values.spec.hostnames | default (list (printf "%s.glootest.com" $name)) }}
 {{- $prefixPath := index .Values.metadata.labels "prefixPath" | default $name }}
+{{- $routeOptionName := printf "%s-route-policies" $name }}  # Default RouteOption name
+{{- $jwtDisabled := .Values.spec.routeOption.jwt.disable | default false }}  # Configurable JWT disable value
+---
+# HTTPRoute resource
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
   name: {{ $name }}
-  namespace: {{ .Values.metadata.namespace | default $namespace }}
+  namespace: {{ $namespace }}
   labels:
-{{- range $key, $value := .Values.metadata.labels }}
-    {{ $key }}: "{{ $value }}"
-{{- end }}
+    example: {{ .Values.metadata.labels.example | default "sample-app-route" }}
+    gateway: {{ .Values.metadata.labels.gateway | default "https" }}
 spec:
   hostnames:
 {{- range $hostnames }}
     - {{ . }}
 {{- end }}
   parentRefs:
-{{- range .Values.spec.parentRefs }}
-    - name: {{ .name | default "https" }}
-      namespace: {{ .namespace | default "gloo-system" }}
-{{- end }}
+    - name: "https"
+      namespace: "gloo-system"
   rules:
 {{- range .Values.spec.rules }}
-    {{- $namePath := printf "/%s/%s" $prefixPath .backendRefName }}
     - backendRefs:
         - group: gloo.solo.io
           kind: Upstream
-          name: {{ .backendRefName }}
+          name: {{ .backendRefName | default $name }}  # Default to name if not provided
       matches:
         - path:
             type: PathPrefix
-            value: {{ if .useRandomPathPrefix }}{{ $namePath }}{{ else }}{{ .pathPrefix | default (printf "/%s" $name) }}{{ end }}
+            value: {{ .pathPrefix | default "/" }}  # Default to root path if not provided
       filters:
         - type: ExtensionRef
           extensionRef:
             group: gateway.solo.io
             kind: RouteOption
-            name: {{ .routeOptionName }}
+            name: {{ .routeOptionName | default $routeOptionName }}  # Default RouteOption name
 {{- end }}
+---
+# RouteOption resource
+apiVersion: gateway.solo.io/v1
+kind: RouteOption
+metadata:
+  name: {{ $routeOptionName }}
+  namespace: {{ $namespace }}
+spec:
+  options:
+    jwt:
+      disable: {{ $jwtDisabled }}  # Configurable true/false
