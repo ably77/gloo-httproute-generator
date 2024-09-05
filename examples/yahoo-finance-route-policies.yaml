@@ -1,0 +1,13 @@
+apiVersion: gateway.solo.io/v1
+kind: RouteOption
+metadata:
+  name: yahoo-finance-route-policies
+  namespace: gloo-system
+spec:
+  options:
+    jwt:
+      disable: true
+    hostRewrite: 'query1.finance.yahoo.com'
+                
+                
+    

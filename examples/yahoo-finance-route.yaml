@@ -1,0 +1,30 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: yahoo-finance-route
+  namespace: gloo-system
+  labels:
+    example: yahoo-finance-route
+    gateway: https
+spec:
+  hostnames:
+  - "yahoo-finance.glootest.com"
+  parentRefs:
+    - name: https
+      namespace: gloo-system
+  rules:
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      backendRefs:
+        - group: gloo.solo.io
+          kind: Upstream
+          name: yahoo-finance
+          port: 443
+      filters:
+      - type: ExtensionRef
+        extensionRef:
+          group: gateway.solo.io
+          kind: RouteOption
+          name: yahoo-finance-route-policies
