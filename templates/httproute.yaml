@@ -27,13 +27,17 @@ spec:
   rules:
 {{- range .Values.spec.rules }}
     - backendRefs:
-        - group: gloo.solo.io
-          kind: Upstream
-          name: {{ .backendRefName | default $name }}  # Default to name if not provided
+{{- range .backendRefs }}
+        - group: {{ .group | default "gloo.solo.io" }}
+          kind: {{ .kind | default "Upstream" }}
+          name: {{ .name | default $name }}
+{{- end }}
       matches:
+{{- range .matches }}
         - path:
-            type: PathPrefix
-            value: {{ .pathPrefix | default "/" }}  # Default to root path if not provided
+            type: {{ .path.type | default "PathPrefix" }}
+            value: {{ .path.value | default "/" }}
+{{- end }}
       filters:
         - type: ExtensionRef
           extensionRef:
