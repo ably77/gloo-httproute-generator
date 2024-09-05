@@ -4,6 +4,10 @@
 {{- $namespace := .Values.metadata.namespace | default "gloo-system" }}
 {{- $hostnames := .Values.spec.hostnames | default (list (printf "%s.glootest.com" $name)) }}
 {{- $prefixPath := index .Values.metadata.labels "prefixPath" | default $name }}
+{{- $routeOptionName := printf "%s-route-policies" $name }}  # Default RouteOption name
+{{- $jwtDisabled := .Values.spec.routeOption.jwt.disable | default false }}  # Configurable JWT disable value
+---
+# HTTPRoute resource
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -35,5 +39,16 @@ spec:
           extensionRef:
             group: gateway.solo.io
             kind: RouteOption
-            name: {{ .routeOptionName | default (printf "%s-route-policies" $name) }}  # Default based on name
+            name: {{ .routeOptionName | default $routeOptionName }}  # Default RouteOption name
 {{- end }}
+---
+# RouteOption resource
+apiVersion: gateway.solo.io/v1
+kind: RouteOption
+metadata:
+  name: {{ $routeOptionName }}
+  namespace: {{ $namespace }}
+spec:
+  options:
+    jwt:
+      disable: {{ $jwtDisabled }}  # Configurable true/false
