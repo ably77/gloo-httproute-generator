@@ -1,7 +1,7 @@
 name: Generate Application Manifest
 
 permissions:
-  contents: write  # Provide write access to repository contents
+  contents: write
 
 on:
   workflow_dispatch:
@@ -21,10 +21,10 @@ on:
         required: true
         default: 'sample-service-1-team-a,sample-service-2-team-a'
         type: string
-      path_prefixes:
-        description: 'Path prefixes for the routes (comma-separated)'
+      matchers:
+        description: 'Matchers for each backend (semicolon-separated, each matcher comma-separated)'
         required: true
-        default: '/,/foo'
+        default: '/,/foo;/bar,/baz'  # matchers for sample-service-1-team-a and sample-service-2-team-a
         type: string
       jwt_disable:
         description: 'Disable JWT'
@@ -64,23 +64,27 @@ jobs:
           SERVICE_NAME=${{ github.event.inputs.service_name }}
           HOSTNAME=${{ github.event.inputs.hostname }}
           BACKEND_REF_NAMES=${{ github.event.inputs.backend_ref_names }}
-          PATH_PREFIXES=${{ github.event.inputs.path_prefixes }}
+          MATCHERS=${{ github.event.inputs.matchers }}
           JWT_DISABLE=${{ github.event.inputs.jwt_disable }}
           HOST_REWRITE=${{ github.event.inputs.host_rewrite }}
 
           IFS=',' read -ra BACKEND_ARRAY <<< "$BACKEND_REF_NAMES"
-          IFS=',' read -ra PATH_ARRAY <<< "$PATH_PREFIXES"
+          IFS=';' read -ra MATCHER_SETS <<< "$MATCHERS"
 
-          # Build rules dynamically by combining backendRefNames and pathPrefixes
+          # Build rules dynamically by combining backendRefNames and their matchers
           RULES=""
           for INDEX in "${!BACKEND_ARRAY[@]}"; do
             BACKEND_NAME="${BACKEND_ARRAY[$INDEX]}"
-            PATH_PREFIX="${PATH_ARRAY[$INDEX]}"
+            MATCHER_SET="${MATCHER_SETS[$INDEX]}"
 
-            RULES="${RULES}
+            IFS=',' read -ra MATCHERS_ARRAY <<< "$MATCHER_SET"
+
+            for MATCHER in "${MATCHERS_ARRAY[@]}"; do
+              RULES="${RULES}
                     - backendRefName: ${BACKEND_NAME}
-                      pathPrefix: ${PATH_PREFIX}
+                      pathPrefix: ${MATCHER}
                       routeOptionName: ${SERVICE_NAME}-route-policies"
+            done
           done
 
           if [ -n "$HOSTNAME" ]; then
