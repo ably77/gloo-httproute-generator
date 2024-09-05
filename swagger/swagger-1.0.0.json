@@ -110,6 +110,12 @@ paths:
                     host_rewrite:
                       type: string
                       example: query1.finance.yahoo.com
+                    extauth_name:
+                      type: string
+                      example: foo-extauth
+                    extauth_namespace:
+                      type: string
+                      example: gloo-system
                   required:
                     - service_name
                     - hostname
@@ -117,6 +123,8 @@ paths:
                     - path_prefixes
                     - jwt_disable
                     - host_rewrite
+                    - extauth_name
+                    - extauth_namespace
       responses:
         '204':
           description: Successfully triggered the GitHub Action
