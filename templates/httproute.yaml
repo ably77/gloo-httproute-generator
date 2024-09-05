@@ -14,7 +14,7 @@ metadata:
   name: {{ $name }}-route
   namespace: {{ $namespace }}
   labels:
-    example: {{ .Values.metadata.labels.example | default $name-route }}
+    example: {{ .Values.metadata.labels.example | default $name }}
     gateway: {{ .Values.metadata.labels.gateway | default "https" }}
 spec:
   hostnames:
