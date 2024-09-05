@@ -1,0 +1,161 @@
+name: Generate Application Manifest
+
+on:
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: 'Service name'
+        required: true
+        default: 'sample-service-1-team-a'
+        type: string
+      hostname:
+        description: 'Hostname (optional, leave empty for default hostname)'
+        required: false
+        default: 'team-a.glootest.com'
+        type: string
+      backend_ref_names:
+        description: 'Backend reference names (comma-separated)'
+        required: true
+        default: 'sample-service-1-team-a,sample-service-2-team-a'
+        type: string
+      path_prefixes:
+        description: 'Path prefixes for the routes (comma-separated)'
+        required: true
+        default: '/,/foo'
+        type: string
+      jwt_disable:
+        description: 'Disable JWT'
+        required: true
+        default: 'true'
+        type: boolean
+      host_rewrite:
+        description: 'Host rewrite (optional, leave empty for no rewrite)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  update-manifest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Git user
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+
+      - name: Create an empty branch
+        id: create_branch
+        run: |
+          BRANCH_NAME="service-route-update-${{ github.run_id }}-${{ github.event.inputs.service_name }}"
+          git checkout --orphan $BRANCH_NAME
+          git rm -rf .
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Render manifest based on input
+        id: render_manifest
+        run: |  
+          SERVICE_NAME=${{ github.event.inputs.service_name }}
+          HOSTNAME=${{ github.event.inputs.hostname }}
+          BACKEND_REF_NAMES=${{ github.event.inputs.backend_ref_names }}
+          PATH_PREFIXES=${{ github.event.inputs.path_prefixes }}
+          JWT_DISABLE=${{ github.event.inputs.jwt_disable }}
+          HOST_REWRITE=${{ github.event.inputs.host_rewrite }}
+
+          IFS=',' read -ra BACKEND_ARRAY <<< "$BACKEND_REF_NAMES"
+          IFS=',' read -ra PATH_ARRAY <<< "$PATH_PREFIXES"
+
+          # Build rules dynamically by combining backendRefNames and pathPrefixes
+          RULES=""
+          for INDEX in "${!BACKEND_ARRAY[@]}"; do
+            BACKEND_NAME="${BACKEND_ARRAY[$INDEX]}"
+            PATH_PREFIX="${PATH_ARRAY[$INDEX]}"
+
+            RULES="${RULES}
+                    - backendRefName: ${BACKEND_NAME}
+                      pathPrefix: ${PATH_PREFIX}
+                      routeOptionName: ${SERVICE_NAME}-route-policies"
+          done
+
+          if [ -n "$HOSTNAME" ]; then
+            HOSTNAMES="hostnames:
+                      - \"$HOSTNAME\""
+          else
+            HOSTNAMES="hostnames:
+                      - team-a.glootest.com"
+          fi
+
+          # Handle host rewrite
+          if [ -n "$HOST_REWRITE" ]; then
+            HOST_REWRITE_CONFIG="hostRewrite: $HOST_REWRITE"
+          else
+            HOST_REWRITE_CONFIG=""
+          fi
+
+          FILE_PATH="environments/kapoozi/sample-service-routes/base/${SERVICE_NAME}.yaml"
+
+          mkdir -p environments/kapoozi/sample-service-routes/base
+
+          cat <<EOF > $FILE_PATH
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: ${SERVICE_NAME}-route
+            namespace: argocd
+            finalizers:
+              - resources-finalizer.argocd.argoproj.io
+          spec:
+            project: default
+            destination:
+              namespace: gloo-system
+              server: "https://kubernetes.default.svc"
+            source:
+              repoURL: 'https://github.com/ably77/gloo-httproute-generator'
+              targetRevision: HEAD
+              path: "."
+              helm:
+                values: |
+                  metadata:
+                    name: "${SERVICE_NAME}"
+                    namespace: gloo-system
+                    labels:
+                      example: ${SERVICE_NAME}-route
+                      gateway: https
+                  spec:
+                    ${HOSTNAMES}
+                    parentRefs:
+                      - name: https
+                        namespace: gloo-system
+                    rules: ${RULES}
+                    routeOption:
+                      jwt:
+                        disable: ${JWT_DISABLE}
+                      ${HOST_REWRITE_CONFIG}
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+          EOF
+
+          echo "FILE_PATH=$FILE_PATH" >> $GITHUB_ENV
+      
+      - name: Commit and push changes
+        run: |
+          git add ${{ env.FILE_PATH }}
+          git commit -m "Add new manifest for service ${{ github.event.inputs.service_name }}"
+          git push origin ${{ env.BRANCH_NAME }}
+
+      - name: Merge branch into main
+        run: |
+          git fetch origin main
+          git checkout main
+          git pull origin main
+          git merge --allow-unrelated-histories --no-ff ${{ env.BRANCH_NAME }}
+          git push origin main || (git pull --rebase origin main && git push origin main)
+
+      - name: Delete branch after merge
+        run: |
+          git push origin --delete ${{ env.BRANCH_NAME }}
