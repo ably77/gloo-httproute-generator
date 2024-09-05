@@ -1,4 +1,4 @@
-name: Generate Application Manifest
+name: Generate Proxy Action
 
 on:
   workflow_dispatch:
