@@ -12,3 +12,4 @@ spec:
   routeOption:
     jwt:
       disable: true               # Configurable: set to true/false
+    hostRewrite: ''  # Configurable hostRewrite value
