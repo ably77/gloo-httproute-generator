@@ -25,18 +25,11 @@ spec:
           hostnames:                        # Optional, generated if not provided
             - team-a.glootest.com
           rules:
-            - backendRefs:
-                - group: gloo.solo.io
-                  kind: Upstream
-                  name: sample-service-1-team-a
-            matches:
-              - path:
-                  type: PathPrefix
-                  value: /
+            - backendRefName: sample-service-1-team-a  # Derived from name if not provided
+              pathPrefix: /
           routeOption:
             jwt:
               disable: true               # Configurable: set to true/false
-
   syncPolicy:
     automated:
       prune: true
