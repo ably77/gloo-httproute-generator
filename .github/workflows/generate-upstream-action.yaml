@@ -9,7 +9,6 @@ on:
       upstream_name:
         description: 'Upstream name'
         required: true
-        default: 'yahoo-finance'
         type: string
       upstream_uri:
         description: 'Upstream URI (e.g., api.example.com)'
