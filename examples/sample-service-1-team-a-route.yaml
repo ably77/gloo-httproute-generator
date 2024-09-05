@@ -32,6 +32,7 @@ spec:
           routeOption:
             jwt:
               disable: true               # Configurable: set to true/false
+            #hostRewrite: "team-a.glootest.com"  # Configurable hostRewrite if provided
   syncPolicy:
     automated:
       prune: true
