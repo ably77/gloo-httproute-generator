@@ -6,7 +6,7 @@
 {{- $prefixPath := index .Values.metadata.labels "prefixPath" | default $name }}
 {{- $routeOptionName := printf "%s-route-policies" $name }}  # Default RouteOption name
 {{- $jwtDisabled := .Values.spec.routeOption.jwt.disable | default false }}  # Configurable JWT disable value
-{{- $hostRewrite := .Values.spec.routeOption.hostRewrite | default "" }}  # Configurable hostRewrite value
+{{- $hostRewrite := .Values.spec.routeOption.hostRewrite }}  # Configurable hostRewrite value
 {{- $extAuthConfigRef := index .Values.spec.routeOption "extauth" | default dict }}  # Check if extauth exists
 ---
 # HTTPRoute resource
@@ -61,5 +61,5 @@ spec:
     extauth:
       configRef:
         name: {{ $extAuthConfigRef.configRef.name }}
-        namespace: {{ $extAuthConfigRef.configRef.namespace | default "gloo-system" }}
+        namespace: {{ $extAuthConfigRef.configRef.namespace }}
 {{- end }}
