@@ -153,12 +153,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge branch into main
+      - name: Merge branch into main with conflict resolution
         run: |
           git fetch origin main
           git checkout main
           git pull origin main
-          git merge --allow-unrelated-histories --no-ff ${{ env.BRANCH_NAME }} || git merge --strategy-option theirs ${{ env.BRANCH_NAME }}
+          git merge --no-ff ${{ env.BRANCH_NAME }} || (
+            echo "Resolving conflicts by keeping changes from the new branch" &&
+            git checkout --theirs routes/${{ github.event.inputs.service_name }}.yaml &&
+            git add routes/${{ github.event.inputs.service_name }}.yaml &&
+            git commit --no-edit
+          )
           git push origin main || (git pull --rebase origin main && git push origin main)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
