@@ -32,9 +32,6 @@ spec:
           - backendRefName: sample-service-1-team-a
             pathPrefix: /
             routeOptionName: sample-service-1-team-a-route-policies
-          - backendRefName: sample-service-2-team-a
-            pathPrefix: /foo
-            routeOptionName: sample-service-1-team-a-route-policies
           routeOption:
             jwt:
               disable: true
