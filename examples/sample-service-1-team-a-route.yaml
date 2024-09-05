@@ -27,6 +27,8 @@ spec:
           rules:
             - backendRefName: sample-service-1-team-a  # Derived from name if not provided
               pathPrefix: /
+            - backendRefName: sample-service-2-team-a  # Derived from name if not provided
+              pathPrefix: /foo
           routeOption:
             jwt:
               disable: true               # Configurable: set to true/false
