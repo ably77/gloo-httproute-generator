@@ -36,6 +36,16 @@ on:
         required: false
         default: ''
         type: string
+      extauth_name:
+        description: 'ExtAuth config name (optional, leave empty for no ext auth)'
+        required: false
+        default: ''
+        type: string
+      extauth_namespace:
+        description: 'ExtAuth config namespace (optional, leave empty for no ext auth)'
+        required: false
+        default: 'gloo-system'
+        type: string
 
 jobs:
   update-manifest:
@@ -67,6 +77,8 @@ jobs:
           PATH_PREFIXES=${{ github.event.inputs.path_prefixes }}
           JWT_DISABLE=${{ github.event.inputs.jwt_disable }}
           HOST_REWRITE=${{ github.event.inputs.host_rewrite }}
+          EXTAUTH_NAME=${{ github.event.inputs.extauth_name }}
+          EXTAUTH_NAMESPACE=${{ github.event.inputs.extauth_namespace }}
 
           IFS=',' read -ra BACKEND_ARRAY <<< "$BACKEND_REF_NAMES"
           IFS=',' read -ra PATH_ARRAY <<< "$PATH_PREFIXES"
@@ -96,6 +108,16 @@ jobs:
             HOST_REWRITE_CONFIG="hostRewrite: $HOST_REWRITE"
           else
             HOST_REWRITE_CONFIG=""
+          fi
+
+          # Handle extauth config
+          if [ -n "$EXTAUTH_NAME" ]; then
+            EXTAUTH_CONFIG="extauth:
+                configRef:
+                  name: $EXTAUTH_NAME
+                  namespace: $EXTAUTH_NAMESPACE"
+          else
+            EXTAUTH_CONFIG=""
           fi
 
           FILE_PATH="routes/${SERVICE_NAME}.yaml"  # Updated to place the manifest in /routes
@@ -137,6 +159,7 @@ jobs:
                       jwt:
                         disable: ${JWT_DISABLE}
                       ${HOST_REWRITE_CONFIG}
+                      ${EXTAUTH_CONFIG}
             syncPolicy:
               automated:
                 prune: true
