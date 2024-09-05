@@ -62,5 +62,5 @@ spec:
     extauth:
       configRef:
         name: {{ $extAuthName }}
-        namespace: {{ $extAuthNamespace }}  # Configurable extauth config reference
+        namespace: {{ $extAuthNamespace }}  # Only render extauth if both values are provided
 {{- end }}
