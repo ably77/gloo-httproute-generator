@@ -56,3 +56,9 @@ spec:
 {{- if $hostRewrite }}
     hostRewrite: {{ $hostRewrite }}  # Configurable hostRewrite if provided
 {{- end }}
+{{- if .Values.spec.routeOption.extauth }}
+    extauth:
+      configRef:
+        name: {{ .Values.spec.routeOption.extauth.configRef.name }}
+        namespace: {{ .Values.spec.routeOption.extauth.configRef.namespace | default "gloo-system" }}
+{{- end }}
