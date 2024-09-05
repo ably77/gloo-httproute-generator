@@ -8,7 +8,7 @@
 {{- $jwtDisabled := .Values.spec.routeOption.jwt.disable | default false }}  # Configurable JWT disable value
 {{- $hostRewrite := .Values.spec.routeOption.hostRewrite | default "" }}  # Configurable hostRewrite value
 {{- $extauthConfigRefName := .Values.spec.routeOption.extauth.configRef.name | default "" }}
-{{- $extauthConfigRefNamespace := .Values.spec.routeOption.extauth.configRef.namespace | default "gloo-system" }}
+{{- $extauthConfigRefNamespace := .Values.spec.routeOption.extauth.configRef.namespace | default "" }}
 
 ---
 # HTTPRoute resource
@@ -59,7 +59,7 @@ spec:
 {{- if $hostRewrite }}
     hostRewrite: {{ $hostRewrite }}  # Configurable hostRewrite if provided
 {{- end }}
-{{- if and $extauthConfigRefName $extauthConfigRefNamespace }}
+{{- if and (hasKey .Values.spec.routeOption "extauth") (hasKey .Values.spec.routeOption.extauth "configRef") }}
     extauth:
       configRef:
         name: {{ $extauthConfigRefName }}
