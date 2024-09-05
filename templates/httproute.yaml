@@ -4,10 +4,10 @@
 {{- $namespace := .Values.metadata.namespace | default "gloo-system" }}
 {{- $hostnames := .Values.spec.hostnames | default (list (printf "%s.glootest.com" $name)) }}
 {{- $prefixPath := index .Values.metadata.labels "prefixPath" | default $name }}
-{{- $routeOptionName := printf "%s-route-policies" $name }}  # Default RouteOption name
-{{- $jwtDisabled := .Values.spec.routeOption.jwt.disable | default false }}  # Configurable JWT disable value
-{{- $hostRewrite := .Values.spec.routeOption.hostRewrite | default "" }}  # Configurable hostRewrite value
-{{- $extAuthExists := hasKey .Values.spec.routeOption "extauth" }}  # Check if extauth exists in values.yaml
+{{- $routeOptionName := printf "%s-route-policies" $name }}
+{{- $jwtDisabled := .Values.spec.routeOption.jwt.disable | default false }}
+{{- $hostRewrite := .Values.spec.routeOption.hostRewrite | default "" }}
+{{- $extAuthExists := hasKey .Values.spec.routeOption "extauth" }}  # Explicitly checking if extauth exists
 ---
 # HTTPRoute resource
 apiVersion: gateway.networking.k8s.io/v1beta1
@@ -31,17 +31,17 @@ spec:
     - backendRefs:
         - group: gloo.solo.io
           kind: Upstream
-          name: {{ .backendRefName | default $name }}  # Default to name if not provided
+          name: {{ .backendRefName | default $name }}
       matches:
         - path:
             type: PathPrefix
-            value: {{ .pathPrefix | default "/" }}  # Default to root path if not provided
+            value: {{ .pathPrefix | default "/" }}
       filters:
         - type: ExtensionRef
           extensionRef:
             group: gateway.solo.io
             kind: RouteOption
-            name: {{ .routeOptionName | default $routeOptionName }}  # Default RouteOption name
+            name: {{ .routeOptionName | default $routeOptionName }}
 {{- end }}
 ---
 # RouteOption resource
@@ -53,13 +53,15 @@ metadata:
 spec:
   options:
     jwt:
-      disable: {{ $jwtDisabled }}  # Configurable true/false
+      disable: {{ $jwtDisabled }}
 {{- if $hostRewrite }}
-    hostRewrite: {{ $hostRewrite }}  # Configurable hostRewrite if provided
+    hostRewrite: {{ $hostRewrite }}
 {{- end }}
-{{- if $extAuthExists }}  # Only add extauth block if extauth exists in values.yaml
+{{- if $extAuthExists }}  # Only include if extauth key is present in values.yaml
+    {{- if .Values.spec.routeOption.extauth.configRef.name }}  # Check if configRef.name exists
     extauth:
       configRef:
-        name: {{ .Values.spec.routeOption.extauth.configRef.name | default "" }}
+        name: {{ .Values.spec.routeOption.extauth.configRef.name }}
         namespace: {{ .Values.spec.routeOption.extauth.configRef.namespace | default "gloo-system" }}
+    {{- end }}
 {{- end }}
