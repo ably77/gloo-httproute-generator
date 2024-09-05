@@ -13,7 +13,3 @@ spec:
     jwt:
       disable: true               # Configurable: set to true/false
     hostRewrite: ''               # Configurable hostRewrite value
-    extauth:
-      configRef:
-        name: apikey-auth          # Configurable extauth config reference name
-        namespace: gloo-system     # Configurable extauth config reference namespace
