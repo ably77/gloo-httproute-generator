@@ -1,0 +1,9 @@
+apiVersion: gateway.solo.io/v1
+kind: RouteOption
+metadata:
+  name: gh-action-idp-swagger-ui-route-policies
+  namespace: swagger-ui
+spec:
+  options:
+    jwt:
+      disable: true

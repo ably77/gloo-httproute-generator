@@ -1,0 +1,180 @@
+openapi: 3.0.3
+info:
+  title: Gloo HTTPRoute Generator API
+  description: API for managing upstreams and routes using GitHub Actions workflows.
+  version: 1.0.0
+servers:
+  - url: https://api.github.com/repos/ably77/gloo-httproute-generator/actions/workflows
+    description: GitHub API server
+
+components:
+  securitySchemes:
+    GitHubToken:
+      type: http
+      scheme: bearer
+      bearerFormat: token
+      description: "Personal Access Token for GitHub"
+
+security:
+  - GitHubToken: []
+
+tags:
+  - name: Upstreams
+    description: Actions for configuring upstreams.
+  - name: Routes
+    description: Actions for configuring and deleting routes.
+
+paths:
+  /generate-upstream-action.yaml/dispatches:
+    post:
+      tags:
+        - Upstreams
+      summary: Configure an Upstream
+      description: Trigger the GitHub Action to configure an upstream.
+      security:
+        - GitHubToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ref:
+                  type: string
+                  example: main
+                inputs:
+                  type: object
+                  properties:
+                    upstream_name:
+                      type: string
+                      example: yahoo-finance
+                    upstream_uri:
+                      type: string
+                      example: query1.finance.yahoo.com
+                  required:
+                    - upstream_name
+                    - upstream_uri
+      responses:
+        '204':
+          description: Successfully triggered the GitHub Action
+        '403':
+          description: Forbidden - Must have admin rights to the repository. Check that you have provided a valid Github Personal Access Token (PAT)
+          content:
+            application/json:
+              example:
+                message: "Must have admin rights to Repository."
+                documentation_url: "https://docs.github.com/rest/actions/workflows#create-a-workflow-dispatch-event"
+                status: "403"
+        '404':
+          description: Workflow or repository not found
+        '422':
+          description: Validation error (e.g., missing inputs)
+
+  /generate-route-action.yaml/dispatches:
+    post:
+      tags:
+        - Routes
+      summary: Configure a Route
+      description: Trigger the GitHub Action to configure a route for a service.
+      security:
+        - GitHubToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ref:
+                  type: string
+                  example: main
+                inputs:
+                  type: object
+                  properties:
+                    service_name:
+                      type: string
+                      example: yahoo-finance-route
+                    hostname:
+                      type: string
+                      example: yahoo-finance.glootest.com
+                    backend_ref_names:
+                      type: string
+                      example: yahoo-finance
+                    path_prefixes:
+                      type: string
+                      example: /
+                    jwt_disable:
+                      type: string
+                      example: "true"
+                    host_rewrite:
+                      type: string
+                      example: query1.finance.yahoo.com
+                  required:
+                    - service_name
+                    - hostname
+                    - backend_ref_names
+                    - path_prefixes
+                    - jwt_disable
+                    - host_rewrite
+      responses:
+        '204':
+          description: Successfully triggered the GitHub Action
+        '403':
+          description: Forbidden - Must have admin rights to the repository. Check that you have provided a valid Github Personal Access Token (PAT)
+          content:
+            application/json:
+              example:
+                message: "Must have admin rights to Repository."
+                documentation_url: "https://docs.github.com/rest/actions/workflows#create-a-workflow-dispatch-event"
+                status: "403"
+        '404':
+          description: Workflow or repository not found
+        '422':
+          description: Validation error (e.g., missing inputs)
+
+  /delete-route-action.yaml/dispatches:
+    post:
+      tags:
+        - Routes
+      summary: Delete a Route or Upstream
+      description: Trigger the GitHub Action to delete a route or upstream.
+      security:
+        - GitHubToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ref:
+                  type: string
+                  example: main
+                inputs:
+                  type: object
+                  properties:
+                    service_name:
+                      type: string
+                      example: yahoo-finance-route
+                    upstream_name:
+                      type: string
+                      example: yahoo-finance
+                  required:
+                    - service_name
+                    - upstream_name
+      responses:
+        '204':
+          description: Successfully triggered the GitHub Action
+        '403':
+          description: Forbidden - Must have admin rights to the repository. Check that you have provided a valid Github Personal Access Token (PAT)
+          content:
+            application/json:
+              example:
+                message: "Must have admin rights to Repository."
+                documentation_url: "https://docs.github.com/rest/actions/workflows#create-a-workflow-dispatch-event"
+                status: "403"
+        '404':
+          description: Workflow or repository not found
+        '422':
+          description: Validation error (e.g., missing inputs)
