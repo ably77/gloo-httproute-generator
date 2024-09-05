@@ -5,8 +5,6 @@
 {{- $hostnames := .Values.spec.hostnames | default (list (printf "%s.glootest.com" $name)) }}
 {{- $prefixPath := index .Values.metadata.labels "prefixPath" | default $name }}
 {{- $routeOptionName := printf "%s-route-policies" $name }}  # Default RouteOption name
-{{- $jwtDisabled := .Values.spec.routeOption.jwt.disable | default false }}  # Configurable JWT disable value
-{{- $hostRewrite := .Values.spec.routeOption.hostRewrite | default "" }}  # Configurable hostRewrite value
 ---
 # HTTPRoute resource
 apiVersion: gateway.networking.k8s.io/v1beta1
@@ -51,14 +49,18 @@ metadata:
   namespace: {{ $namespace }}
 spec:
   options:
+{{- if .Values.spec.routeOption }}
+  {{- if hasKey .Values.spec.routeOption "jwt" }}
     jwt:
-      disable: {{ $jwtDisabled }}  # Configurable true/false
-{{- if $hostRewrite }}
-    hostRewrite: {{ $hostRewrite }}  # Configurable hostRewrite if provided
-{{- end }}
-{{- if and .Values.spec.routeOption.extauth .Values.spec.routeOption.extauth.configRef }}
+      disable: {{ .Values.spec.routeOption.jwt.disable }}
+  {{- end }}
+  {{- if .Values.spec.routeOption.hostRewrite }}
+    hostRewrite: {{ .Values.spec.routeOption.hostRewrite }}
+  {{- end }}
+  {{- if and (hasKey .Values.spec.routeOption "extauth") (hasKey .Values.spec.routeOption.extauth "configRef") }}
     extauth:
       configRef:
         name: {{ .Values.spec.routeOption.extauth.configRef.name }}
         namespace: {{ .Values.spec.routeOption.extauth.configRef.namespace | default "gloo-system" }}
+  {{- end }}
 {{- end }}
