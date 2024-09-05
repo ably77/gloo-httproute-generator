@@ -29,18 +29,24 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
 
-      - name: Create an empty branch
+      - name: Pull latest changes from main
+        run: |
+          git fetch origin main
+          git checkout main
+          git pull origin main
+
+      - name: Create an empty branch for deletion
         id: create_branch
         run: |
           BRANCH_NAME="delete-manifest-${{ github.run_id }}-${{ github.event.inputs.service_name }}"
-          git checkout --orphan $BRANCH_NAME
-          git rm -rf .
+          git checkout -b $BRANCH_NAME
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
       - name: Delete the service manifest file
         run: |
           FILE_PATH="routes/${{ github.event.inputs.service_name }}.yaml"
           if [ -f "$FILE_PATH" ]; then
+            echo "Deleting $FILE_PATH"
             git rm $FILE_PATH
           else
             echo "File $FILE_PATH does not exist, skipping deletion."
@@ -51,6 +57,7 @@ jobs:
         run: |
           UPSTREAM_FILE_PATH="routes/upstreams/${{ github.event.inputs.upstream_name }}.yaml"
           if [ -f "$UPSTREAM_FILE_PATH" ]; then
+            echo "Deleting $UPSTREAM_FILE_PATH"
             git rm $UPSTREAM_FILE_PATH
           else
             echo "Upstream file $UPSTREAM_FILE_PATH does not exist, skipping deletion."
@@ -59,7 +66,7 @@ jobs:
       - name: Commit and push changes
         run: |
           git commit -m "Delete manifest for service ${{ github.event.inputs.service_name }} and upstream ${{ github.event.inputs.upstream_name }}"
-          git push origin ${{ env.BRANCH_NAME }}
+          git push origin $BRANCH_NAME
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
