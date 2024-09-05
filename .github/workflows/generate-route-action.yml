@@ -1,4 +1,4 @@
-name: Generate Application Manifest
+name: Generate Route Action
 
 permissions:
   contents: write  # Provide write access to repository contents

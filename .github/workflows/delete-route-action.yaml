@@ -1,4 +1,4 @@
-name: Delete Application and Upstream Manifest
+name: Delete Route Action
 
 permissions:
   contents: write  # Provide write access to repository contents
