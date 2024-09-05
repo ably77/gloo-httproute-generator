@@ -70,6 +70,7 @@ data:
     servers:
       - url: https://api.github.com/repos/ably77/gloo-httproute-generator/actions/workflows
         description: GitHub API server
+
     components:
       securitySchemes:
         GitHubToken:
@@ -77,13 +78,16 @@ data:
           scheme: bearer
           bearerFormat: token
           description: "Personal Access Token for GitHub"
+
     security:
       - GitHubToken: []
+
     tags:
       - name: Upstreams
         description: Actions for configuring upstreams.
       - name: Routes
         description: Actions for configuring and deleting routes.
+
     paths:
       /generate-upstream-action.yaml/dispatches:
         post:
@@ -130,6 +134,7 @@ data:
               description: Workflow or repository not found
             '422':
               description: Validation error (e.g., missing inputs)
+
       /generate-route-action.yaml/dispatches:
         post:
           tags:
@@ -169,6 +174,12 @@ data:
                         host_rewrite:
                           type: string
                           example: query1.finance.yahoo.com
+                        extauth_name:
+                          type: string
+                          example: foo-extauth
+                        extauth_namespace:
+                          type: string
+                          example: gloo-system
                       required:
                         - service_name
                         - hostname
@@ -176,6 +187,8 @@ data:
                         - path_prefixes
                         - jwt_disable
                         - host_rewrite
+                        - extauth_name
+                        - extauth_namespace
           responses:
             '204':
               description: Successfully triggered the GitHub Action
@@ -191,6 +204,7 @@ data:
               description: Workflow or repository not found
             '422':
               description: Validation error (e.g., missing inputs)
+
       /delete-route-action.yaml/dispatches:
         post:
           tags:
